@@ -1,0 +1,7 @@
+{
+    "config": {
+        "abort": {
+            "no_i2c": "Unable to communicate with the UPS on i2c"
+        }
+    }
+}

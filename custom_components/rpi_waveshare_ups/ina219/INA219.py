@@ -12,22 +12,16 @@ import smbus2 as smbus
 
 # endregion
 
-# Config Register (R/W)
-_REG_CONFIG = 0x00
-# SHUNT VOLTAGE REGISTER (R)
-_REG_SHUNTVOLTAGE = 0x01
 
-# BUS VOLTAGE REGISTER (R)
-_REG_BUSVOLTAGE = 0x02
+class Registers(Enum):
+    """Register addresses."""
 
-# POWER REGISTER (R)
-_REG_POWER = 0x03
-
-# CURRENT REGISTER (R)
-_REG_CURRENT = 0x04
-
-# CALIBRATION REGISTER (R/W)
-_REG_CALIBRATION = 0x05
+    CONFIG = 0x00  # Config Register (R/W)
+    SHUNTVOLTAGE = 0x01  # SHUNT VOLTAGE REGISTER (R)
+    BUSVOLTAGE = 0x02  # BUS VOLTAGE REGISTER (R)
+    POWER = 0x03  # POWER REGISTER (R)
+    CURRENT = 0x04  # CURRENT REGISTER (R)
+    CALIBRATION = 0x05  # CALIBRATION REGISTER (R/W)
 
 
 class BusVoltageRange(Enum):
@@ -84,9 +78,10 @@ class INA219:
         self.addr: int = addr
 
         # Set chip to known config values to start
-        self._cal_value: int = 0
-        self._current_lsb: int = 0
-        self._power_lsb: int = 0
+        self._cal_value: int | None = None
+        self._current_lsb: float | None = None
+        self._power_lsb: float | None = None
+
         self.set_calibration_32v_2a()
 
     def read(self, address: int) -> int:
@@ -133,18 +128,18 @@ class INA219:
         # 4. Choose an LSB between the min and max values
         #    (Preferrably a roundish number close to MinLSB)
         # CurrentLSB = 0.0001 (100uA per bit)
-        self._current_lsb: float = 0.1  # Current LSB = 100uA per bit
+        self._current_lsb = 0.1  # Current LSB = 100uA per bit
 
         # 5. Compute the calibration register
         # Cal = trunc (0.04096 / (Current_LSB * RSHUNT))
         # Cal = 4096 (0x1000)
 
-        self._cal_value: int = 4096
+        self._cal_value = 4096
 
         # 6. Calculate the power LSB
         # PowerLSB = 20 * CurrentLSB
         # PowerLSB = 0.002 (2mW per bit)
-        self._power_lsb: float = 0.002  # Power LSB = 2mW per bit
+        self._power_lsb = 0.002  # Power LSB = 2mW per bit
 
         # 7. Compute the maximum current and shunt voltage values before overflow
         #
@@ -172,48 +167,50 @@ class INA219:
         # MaximumPower = 102.4W
 
         # Set Calibration register to 'Cal' calculated above
-        self.write(_REG_CALIBRATION, self._cal_value)
+        self.write(Registers.CALIBRATION, self._cal_value)
 
         # Set Config register to take into account the settings above
-        self.bus_voltage_range: int = BusVoltageRange.RANGE_32V
-        self.gain: int = Gain.DIV_8_320MV
-        self.bus_adc_resolution: int = ADCResolution.ADCRES_12BIT_32S
-        self.shunt_adc_resolution: int = ADCResolution.ADCRES_12BIT_32S
-        self.mode: int = Mode.SANDBVOLT_CONTINUOUS
-        self.config = (
-            self.bus_voltage_range << 13
-            | self.gain << 11
-            | self.bus_adc_resolution << 7
-            | self.shunt_adc_resolution << 3
-            | self.mode
+        bus_adc_resolution: int = ADCResolution.ADCRES_12BIT_32S
+        bus_voltage_range = BusVoltageRange.RANGE_32V
+        gain = Gain.DIV_8_320MV
+        mode = Mode.SANDBVOLT_CONTINUOUS
+        shunt_adc_resolution = ADCResolution.ADCRES_12BIT_32S
+
+        config: Sequence[int] = (
+            bus_voltage_range << 13
+            | gain << 11
+            | bus_adc_resolution << 7
+            | shunt_adc_resolution << 3
+            | mode
         )
-        self.write(_REG_CONFIG, self.config)
+
+        self.write(Registers.CONFIG, config)
 
     def get_shunt_voltage_mv(self) -> float:
         """Get the voltage between V+ and V- across the shunt."""
-        self.write(_REG_CALIBRATION, self._cal_value)
-        value = self.read(_REG_SHUNTVOLTAGE)
+        self.write(Registers.CALIBRATION, self._cal_value)
+        value = self.read(Registers.SHUNTVOLTAGE)
         if value > 32767:
             value -= 65535
         return value * 0.01
 
     def get_bus_voltage_v(self) -> float:
         """Get the voltage on V- (load side)."""
-        self.write(_REG_CALIBRATION, self._cal_value)
-        self.read(_REG_BUSVOLTAGE)
-        return (self.read(_REG_BUSVOLTAGE) >> 3) * 0.004
+        self.write(Registers.CALIBRATION, self._cal_value)
+        self.read(Registers.BUSVOLTAGE)
+        return (self.read(Registers.BUSVOLTAGE) >> 3) * 0.004
 
     def get_current_ma(self) -> float:
         """Get the current in mA."""
-        value = self.read(_REG_CURRENT)
+        value = self.read(Registers.CURRENT)
         if value > 32767:
             value -= 65535
         return value * self._current_lsb
 
     def get_power_w(self) -> float:
         """Get the power in W."""
-        self.write(_REG_CALIBRATION, self._cal_value)
-        value = self.read(_REG_POWER)
+        self.write(Registers.CALIBRATION, self._cal_value)
+        value = self.read(Registers.POWER)
         if value > 32767:
             value -= 65535
         return value * self._power_lsb

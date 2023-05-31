@@ -167,14 +167,14 @@ class INA219:
         # MaximumPower = 102.4W
 
         # Set Calibration register to 'Cal' calculated above
-        self.write(Registers.CALIBRATION, self._cal_value)
+        self.write(Registers.CALIBRATION.value, self._cal_value)
 
         # Set Config register to take into account the settings above
-        bus_adc_resolution: int = ADCResolution.ADCRES_12BIT_32S
-        bus_voltage_range = BusVoltageRange.RANGE_32V
-        gain = Gain.DIV_8_320MV
-        mode = Mode.SANDBVOLT_CONTINUOUS
-        shunt_adc_resolution = ADCResolution.ADCRES_12BIT_32S
+        bus_adc_resolution: int = ADCResolution.ADCRES_12BIT_32S.value
+        bus_voltage_range = BusVoltageRange.RANGE_32V.value
+        gain = Gain.DIV_8_320MV.value
+        mode = Mode.SANDBVOLT_CONTINUOUS.value
+        shunt_adc_resolution = ADCResolution.ADCRES_12BIT_32S.value
 
         config: Sequence[int] = (
             bus_voltage_range << 13
@@ -184,33 +184,33 @@ class INA219:
             | mode
         )
 
-        self.write(Registers.CONFIG, config)
+        self.write(Registers.CONFIG.value, config)
 
     def get_shunt_voltage_mv(self) -> float:
         """Get the voltage between V+ and V- across the shunt."""
-        self.write(Registers.CALIBRATION, self._cal_value)
-        value = self.read(Registers.SHUNTVOLTAGE)
+        self.write(Registers.CALIBRATION.value, self._cal_value)
+        value = self.read(Registers.SHUNTVOLTAGE.value)
         if value > 32767:
             value -= 65535
         return value * 0.01
 
     def get_bus_voltage_v(self) -> float:
         """Get the voltage on V- (load side)."""
-        self.write(Registers.CALIBRATION, self._cal_value)
-        self.read(Registers.BUSVOLTAGE)
-        return (self.read(Registers.BUSVOLTAGE) >> 3) * 0.004
+        self.write(Registers.CALIBRATION.value, self._cal_value)
+        self.read(Registers.BUSVOLTAGE.value)
+        return (self.read(Registers.BUSVOLTAGE.value) >> 3) * 0.004
 
     def get_current_ma(self) -> float:
         """Get the current in mA."""
-        value = self.read(Registers.CURRENT)
+        value = self.read(Registers.CURRENT.value)
         if value > 32767:
             value -= 65535
         return value * self._current_lsb
 
     def get_power_w(self) -> float:
         """Get the power in W."""
-        self.write(Registers.CALIBRATION, self._cal_value)
-        value = self.read(Registers.POWER)
+        self.write(Registers.CALIBRATION.value, self._cal_value)
+        value = self.read(Registers.POWER.value)
         if value > 32767:
             value -= 65535
         return value * self._power_lsb

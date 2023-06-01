@@ -1,7 +1,63 @@
 {
     "config": {
         "abort": {
-            "no_i2c": "Unable to communicate with the UPS on i2c"
+            "already_configured": "Only a single UPS can be configured.",
+            "no_comms": "Unable to communicate with the UPS on i2c.{error_msg}"
+        },
+        "progress": {
+            "task_detect": "Detecting available i2c addresses"
+        },
+        "step": {
+            "select": {
+                "data": {
+                    "hat_address": "Address of the HAT",
+                    "hat_type": "Version of the HAT",
+                    "name": "Name for the integration entry",
+                    "update_interval": "Update interval for retrieving data from the UPS"
+                }
+            }
+        }
+    },
+    "entity": {
+        "binary_sensor": {
+            "battery_state": {
+                "name": "Battery State"
+            }
+        },
+        "sensor": {
+            "battery_percentage": {
+                "name": "Battery Level"
+            },
+            "current": {
+                "name": "Current"
+            },
+            "load_voltage": {
+                "name": "Bus Voltage"
+            },
+            "power": {
+                "name": "Power"
+            },
+            "shunt_voltage": {
+                "name": "Shunt Voltage"
+            }
+        }
+    },
+    "options": {
+        "step": {
+            "init": {
+                "data": {
+                    "update_interval": "Update interval for retrieving data from the UPS"
+                }
+            }
+        }
+    },
+    "selector": {
+        "hat_type": {
+            "options": {
+                "a": "A",
+                "b": "B",
+                "c": "C"
+            }
         }
     }
 }

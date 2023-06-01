@@ -72,7 +72,7 @@ class Mode(Enum):
 class INA219:
     """Interact with INA219."""
 
-    def __init__(self, i2c_bus: int = 1, addr: int = 0x40) -> None:
+    def __init__(self, addr: int, i2c_bus: int) -> None:
         """Initialise."""
         self.bus: smbus.SMBus = smbus.SMBus(i2c_bus)
         self.addr: int = addr

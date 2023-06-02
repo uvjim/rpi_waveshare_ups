@@ -108,7 +108,6 @@ async def _async_build_schema_with_user_input(
                         options=[
                             "a",
                             "b",
-                            "c",
                         ],
                         translation_key="hat_type",
                     )

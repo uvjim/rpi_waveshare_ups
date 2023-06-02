@@ -46,10 +46,11 @@ required.
 ![Selection Screen](images/step_select.png)
 
 * __Name__ - friendly name for the configuration entry
-* __Address of the HAT__ - if only a single address was found it will be selected.
-If multiple addresses are found the first is selected and you'll need to pick
-the correct one to use.
-* __Version of the HAT__ - defaults to B. You should pick the version that you have.
+* __Address of the HAT__ - if only a single address was found it will be
+selected. If multiple addresses are found the first is selected and you'll
+need to pick the correct one to use.
+* __Version of the HAT__ - defaults to B. You should pick the version that you
+have.
 * __Update interval__ - defaults to 10s. Defines how often to query the UPS.
 
 On successful set up the following screen will be seen detailing the device.

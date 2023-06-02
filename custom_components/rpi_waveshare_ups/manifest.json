@@ -12,5 +12,5 @@
     "requirements": [
         "smbus2>=0.4.2"
     ],
-    "version": "2023.6.2"
+    "version": "2023.6.3"
 }

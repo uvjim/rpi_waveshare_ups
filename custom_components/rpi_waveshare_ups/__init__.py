@@ -118,6 +118,13 @@ class UPSEntity(CoordinatorEntity):
         )
 
 
+async def _async_update_listener(
+    hass: HomeAssistant, config_entry: ConfigEntry
+) -> bool:
+    """React to options being updated."""
+    await hass.config_entries.async_reload(config_entry.entry_id)
+
+
 async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> bool:
     """Initialise the ConfigEntry."""
     log_formatter = Logger(unique_id=config_entry.unique_id)
@@ -153,6 +160,10 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> b
     _LOGGER.debug(log_formatter.format("setting up platforms: %s"), PLATFORMS)
     await hass.config_entries.async_forward_entry_setups(config_entry, PLATFORMS)
     # endregion
+
+    config_entry.async_on_unload(
+        config_entry.add_update_listener(_async_update_listener)
+    )
 
     _LOGGER.debug(log_formatter.format("exited"))
     return True

@@ -21,7 +21,10 @@
     "entity": {
         "binary_sensor": {
             "battery_state": {
-                "name": "Battery State"
+                "name": "Battery State",
+                "state": {
+                    "off": "Powering the Pi"
+                }
             }
         },
         "sensor": {
@@ -46,7 +49,11 @@
         "step": {
             "init": {
                 "data": {
+                    "min_charging": "Lowest current value considered for charging",
                     "update_interval": "Update interval for retrieving data from the UPS"
+                },
+                "data_description": {
+                    "min_charging": "The lowest current value before considering the batteries to be powering the Pi."
                 }
             }
         }

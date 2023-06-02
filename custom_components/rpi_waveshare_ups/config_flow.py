@@ -8,7 +8,7 @@ from typing import Any
 import smbus2 as smbus
 import voluptuous as vol
 from homeassistant.config_entries import ConfigEntry, ConfigFlow, OptionsFlow
-from homeassistant.const import UnitOfTime
+from homeassistant.const import UnitOfElectricCurrent, UnitOfTime
 from homeassistant.core import callback
 from homeassistant.data_entry_flow import AbortFlow, FlowResult
 from homeassistant.helpers import selector
@@ -18,9 +18,11 @@ from .const import (
     CONF_HAT_ADDRESS,
     CONF_HAT_BUS,
     CONF_HAT_TYPE,
+    CONF_MIN_CHARGING,
     CONF_TITLE_PLACEHOLDERS,
     CONF_UPDATE_INTERVAL,
     DEF_HAT_TYPE,
+    DEF_MIN_CHARGING,
     DEF_UPDATE_INTERVAL,
     DOMAIN,
 )
@@ -61,6 +63,17 @@ async def _async_build_schema_with_user_input(
                         mode=selector.NumberSelectorMode.BOX,
                         step=1,
                         unit_of_measurement=UnitOfTime.SECONDS,
+                    )
+                ),
+                vol.Required(
+                    CONF_MIN_CHARGING,
+                    default=user_input.get(CONF_MIN_CHARGING, DEF_MIN_CHARGING),
+                ): selector.NumberSelector(
+                    config=selector.NumberSelectorConfig(
+                        max=0,
+                        mode=selector.NumberSelectorMode.BOX,
+                        step=1,
+                        unit_of_measurement=UnitOfElectricCurrent.MILLIAMPERE,
                     )
                 ),
             }

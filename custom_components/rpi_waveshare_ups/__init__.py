@@ -104,12 +104,12 @@ class UPSEntity(CoordinatorEntity):
     @property
     def device_info(self) -> DeviceInfo:
         """Return the device information of the entity."""
-
         return DeviceInfo(
             identifiers={
                 (
                     DOMAIN,
-                    f"{self._config_entry.options.get(CONF_HAT_BUS)}::{self._config_entry.options.get(CONF_HAT_ADDRESS)}",
+                    f"{self._config_entry.options.get(CONF_HAT_BUS)}"
+                    f"::{self._config_entry.options.get(CONF_HAT_ADDRESS)}",
                 )
             },
             manufacturer="Waveshare",

@@ -15,7 +15,7 @@ from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator
 
 from . import UPS, UPSEntity
-from .const import CONF_COORDINATOR, DOMAIN
+from .const import CONF_COORDINATOR, CONF_MIN_CHARGING, DEF_MIN_CHARGING, DOMAIN
 
 # endregion
 
@@ -51,7 +51,8 @@ async def async_setup_entry(
                 key="battery_state",
                 name="Battery State",
                 translation_key="battery_state",
-                value_fn=lambda u: u.current >= 0,
+                value_fn=lambda u: u.current
+                >= config_entry.options.get(CONF_MIN_CHARGING, DEF_MIN_CHARGING),
             ),
         ),
     ]

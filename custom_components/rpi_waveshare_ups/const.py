@@ -15,7 +15,7 @@ CONF_MIN_CHARGING: str = "min_charging"
 CONF_TITLE_PLACEHOLDERS: str = "title_placeholders"
 CONF_UPDATE_INTERVAL: str = "update_interval"
 
-DEF_HAT_TYPE: str = "b"
+DEF_HAT_TYPE: str = "a"
 DEF_MIN_CHARGING: float = -100
 DEF_UPDATE_INTERVAL: int = 10
 

@@ -54,3 +54,7 @@ It is possible to configure the following options for the integration.
 ![Configure Options](images/config_options.png)
 
 * Update interval - defaults to 10s. Defines how often to query the UPS.
+* Mimimum current value for charging - defaults to -100mA. In my usage I've
+found that whilst the documentation for the HAT states a negative current
+means that the Pi is being powered by the batteries it can drop below 0 on
+normal use. This value allows you to mitigate this.

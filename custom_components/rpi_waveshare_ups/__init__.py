@@ -136,10 +136,11 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> b
 
     # region #-- setup the coordinator --#
     async def _async_data_coordinator_update() -> UPS:
-        ups_data: UPS = UPS(
+        with UPS(
             i2c_bus=config_entry.options.get(CONF_HAT_BUS),
             i2c_address=int(config_entry.options.get(CONF_HAT_ADDRESS), 0),
-        )
+        ) as ups_data:
+            pass
 
         return ups_data
 

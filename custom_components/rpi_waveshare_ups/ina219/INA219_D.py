@@ -1,8 +1,8 @@
 # pylint: disable=invalid-name
 """Library interacting with the INA219 device."""
 
-# Originally provided here:
-# https://github.com/waveshare/UPS-Power-Module/blob/master/ups_display/ina219.py
+# Originally provided from the demo code in below link:
+# https://www.waveshare.com/wiki/UPS_HAT_(D)
 
 # region #-- imports --#
 from enum import Enum
@@ -69,7 +69,7 @@ class Mode(Enum):
     SANDBVOLT_CONTINUOUS = 0x07  # shunt and bus voltage continuous
 
 
-class INA219:
+class INA219_D:
     """Interact with INA219."""
 
     def __init__(self, addr: int, i2c_bus: int) -> None:
@@ -82,7 +82,7 @@ class INA219:
         self._current_lsb: float | None = None
         self._power_lsb: float | None = None
 
-        self.set_calibration_32v_2a()
+        self.set_calibration_16V_5A()
 
     def read(self, address: int) -> int:
         """Read block data from i2c."""
@@ -96,10 +96,10 @@ class INA219:
         temp[0] = (data & 0xFF00) >> 8
         self.bus.write_i2c_block_data(self.addr, address, temp)
 
-    def set_calibration_32v_2a(self) -> None:
-        """Configure to INA219 to be able to measure up to 32V and 2A of current. Counter overflow occurs at 3.2A.
-
-        ..note :: These calculations assume a 0.1 shunt ohm resistor is present
+    def set_calibration_16V_5A(self) -> None:
+        """Configures to INA219 to be able to measure up to 16V and 5A of current. Counter
+           overflow occurs at 16A.
+           ..note :: These calculations assume a 0.01 shunt ohm resistor is present
         """
         # By default we use a pretty huge range for the input voltage,
         # which probably isn't the most appropriate choice for system
@@ -108,38 +108,38 @@ class INA219:
         # also need to change any relevant register settings, such as
         # setting the VBUS_MAX to 16V instead of 32V, etc.
 
-        # VBUS_MAX = 32V             (Assumes 32V, can also be set to 16V)
-        # VSHUNT_MAX = 0.32          (Assumes Gain 8, 320mV, can also be 0.16, 0.08, 0.04)
-        # RSHUNT = 0.1               (Resistor value in ohms)
+        # VBUS_MAX = 16V             (Assumes 16V, can also be set to 32V)
+        # VSHUNT_MAX = 0.08          (Assumes Gain 2, 80mV, can also be 0.32, 0.16, 0.04)
+        # RSHUNT = 0.01               (Resistor value in ohms)
 
         # 1. Determine max possible current
         # MaxPossible_I = VSHUNT_MAX / RSHUNT
-        # MaxPossible_I = 3.2A
+        # MaxPossible_I = 8.0A
 
         # 2. Determine max expected current
-        # MaxExpected_I = 2.0A
+        # MaxExpected_I = 5.0A
 
         # 3. Calculate possible range of LSBs (Min = 15-bit, Max = 12-bit)
         # MinimumLSB = MaxExpected_I/32767
-        # MinimumLSB = 0.000061              (61uA per bit)
+        # MinimumLSB = 0.0001529              (61uA per bit)
         # MaximumLSB = MaxExpected_I/4096
-        # MaximumLSB = 0,000488              (488uA per bit)
+        # MaximumLSB = 0,0012207              (488uA per bit)
 
         # 4. Choose an LSB between the min and max values
         #    (Preferrably a roundish number close to MinLSB)
-        # CurrentLSB = 0.0001 (100uA per bit)
-        self._current_lsb = 0.1  # Current LSB = 100uA per bit
+        # CurrentLSB = 0.00016 (uA per bit)
+        self._current_lsb = 0.1524  # Current LSB = 100uA per bit
 
         # 5. Compute the calibration register
         # Cal = trunc (0.04096 / (Current_LSB * RSHUNT))
-        # Cal = 4096 (0x1000)
+        # Cal = 13434 (0x347a)
 
-        self._cal_value = 4096
+        self._cal_value = 26868
 
         # 6. Calculate the power LSB
         # PowerLSB = 20 * CurrentLSB
         # PowerLSB = 0.002 (2mW per bit)
-        self._power_lsb = 0.002  # Power LSB = 2mW per bit
+        self._power_lsb = 0.003048  # Power LSB = 2mW per bit
 
         # 7. Compute the maximum current and shunt voltage values before overflow
         #
@@ -171,8 +171,8 @@ class INA219:
 
         # Set Config register to take into account the settings above
         bus_adc_resolution: int = ADCResolution.ADCRES_12BIT_32S.value
-        bus_voltage_range = BusVoltageRange.RANGE_32V.value
-        gain = Gain.DIV_8_320MV.value
+        bus_voltage_range = BusVoltageRange.RANGE_16V.value
+        gain = Gain.DIV_2_80MV.value
         mode = Mode.SANDBVOLT_CONTINUOUS.value
         shunt_adc_resolution = ADCResolution.ADCRES_12BIT_32S.value
 

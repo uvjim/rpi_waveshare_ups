@@ -59,7 +59,7 @@ class UPS:
 
     def gather_details(self) -> None:
         """Retrieve the required details for the UPS."""
-        self._current = -self._ina219.get_current_ma()
+        self._current = -self._ina219.get_current_ma() if self._is_model_d else self._ina219.get_current_ma()
         self._load_voltage = self._ina219.get_bus_voltage_v()
         self._power = self._ina219.get_power_w()
         self._shunt_voltage = self._ina219.get_shunt_voltage_mv() / 1000

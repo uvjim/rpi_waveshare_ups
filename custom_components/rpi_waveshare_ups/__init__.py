@@ -22,7 +22,8 @@ from .const import (
     DOMAIN,
     PLATFORMS,
 )
-from .ina219.INA219 import INA219
+from .ina219.INA219_AB import INA219_AB
+from .ina219.INA219_D import INA219_D
 from .logger import Logger
 
 # endregion
@@ -41,10 +42,12 @@ class UPS:
         """Exit magic method."""
         self._close()
 
-    def __init__(self, i2c_bus: int, i2c_address: int) -> None:
+    def __init__(self, i2c_bus: int, i2c_address: int, is_model_d: bool) -> None:
         """Initialise."""
+        _LOGGER.debug("init with is_model_d: %s", is_model_d)
+        self._is_model_d = is_model_d
         self._current: float | None = None
-        self._ina219: INA219 = INA219(addr=i2c_address, i2c_bus=i2c_bus)
+        self._ina219: INA219_D | INA219_AB = INA219_D(addr=i2c_address, i2c_bus=i2c_bus) if is_model_d else INA219_AB(addr=i2c_address, i2c_bus=i2c_bus)
         self._load_voltage: float | None = None
         self._power: float | None = None
         self._shunt_voltage: float | None = None
@@ -56,7 +59,7 @@ class UPS:
 
     def gather_details(self) -> None:
         """Retrieve the required details for the UPS."""
-        self._current = self._ina219.get_current_ma()
+        self._current = -self._ina219.get_current_ma() if self._is_model_d else self._ina219.get_current_ma()
         self._load_voltage = self._ina219.get_bus_voltage_v()
         self._power = self._ina219.get_power_w()
         self._shunt_voltage = self._ina219.get_shunt_voltage_mv() / 1000
@@ -64,7 +67,7 @@ class UPS:
     @property
     def battery_percentage(self) -> float:
         """Get the battery percentage."""
-        ret: float = (self._load_voltage - 6) / 2.4 * 100
+        ret: float = ((self._load_voltage - 3) / 1.2 * 100) if self._is_model_d else ((self._load_voltage - 6) / 2.4 * 100)
         ret = min(ret, 100)
         ret = max(ret, 0)
 
@@ -139,6 +142,7 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> b
         with UPS(
             i2c_bus=config_entry.options.get(CONF_HAT_BUS),
             i2c_address=int(config_entry.options.get(CONF_HAT_ADDRESS), 0),
+            is_model_d=(config_entry.options.get(CONF_HAT_TYPE, 'A').upper() == 'D'),
         ) as ups_data:
             pass
 

@@ -10,7 +10,7 @@ import voluptuous as vol
 from homeassistant.config_entries import ConfigEntry, ConfigFlow, OptionsFlow
 from homeassistant.const import UnitOfElectricCurrent, UnitOfTime
 from homeassistant.core import callback
-from homeassistant.data_entry_flow import AbortFlow, FlowResult
+from homeassistant.data_entry_flow import FlowResult
 from homeassistant.helpers import selector
 
 from .const import (
@@ -142,6 +142,7 @@ class RpiWaveshareUpsConfigFlow(ConfigFlow, domain=DOMAIN):
         self._data: dict = {}
         self._errors: dict[str, str] = {}
         self._logger: Logger = Logger()
+        self._no_buses: bool = False
         self._options: dict = {}
 
     def _detect_i2c_addresses(self) -> None:
@@ -163,11 +164,7 @@ class RpiWaveshareUpsConfigFlow(ConfigFlow, domain=DOMAIN):
                 errors_buses += 1
 
         if errors_buses == len(i2c_buses):
-            _LOGGER.debug(self._logger.format("i2c doesn't seem to be enabled"))
-            raise AbortFlow(
-                description_placeholders={"error_msg": " Check if I2C is enabled."},
-                reason="no_comms",
-            )
+            self._no_buses = True
 
         _LOGGER.debug(self._logger.format("exited"))
 
@@ -216,10 +213,18 @@ class RpiWaveshareUpsConfigFlow(ConfigFlow, domain=DOMAIN):
             self._options.update(user_input)
             return await self.async_step_final()
 
+        if self._no_buses:
+            _LOGGER.debug(self._logger.format("i2c doesn't seem to be enabled"))
+            return self.async_abort(
+                reason="no_comms",
+                description_placeholders={"error_msg": " Check if I2C is enabled."},
+            )
+
         if len(self._addresses) == 0:
             _LOGGER.debug(self._logger.format("no i2c devices found"))
-            raise AbortFlow(
-                description_placeholders={"error_msg": ""}, reason="no_comms"
+            return self.async_abort(
+                reason="no_comms",
+                description_placeholders={"error_msg": ""},
             )
 
         return self.async_show_form(
@@ -241,7 +246,7 @@ class RpiWaveshareUpsConfigFlow(ConfigFlow, domain=DOMAIN):
             domain=DOMAIN
         )
         if len(existing_entries) > 0:
-            raise AbortFlow(reason="already_configured")
+            return self.async_abort(reason="already_configured")
 
         if not self.task_detect:
             _LOGGER.debug(self._logger.format("creating detection task"))

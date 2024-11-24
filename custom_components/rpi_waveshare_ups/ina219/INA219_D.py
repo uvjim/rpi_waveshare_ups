@@ -97,9 +97,9 @@ class INA219_D:
         self.bus.write_i2c_block_data(self.addr, address, temp)
 
     def set_calibration_16V_5A(self) -> None:
-        """Configures to INA219 to be able to measure up to 16V and 5A of current. Counter
-           overflow occurs at 16A.
-           ..note :: These calculations assume a 0.01 shunt ohm resistor is present
+        """Configure to INA219 to be able to measure up to 16V and 5A of current. Counter overflow occurs at 16A.
+
+        ..note :: These calculations assume a 0.01 shunt ohm resistor is present
         """
         # By default we use a pretty huge range for the input voltage,
         # which probably isn't the most appropriate choice for system

@@ -158,7 +158,7 @@ class RpiWaveshareUpsConfigFlow(ConfigFlow, domain=DOMAIN):
                         try:
                             bus.write_byte(device_addr, 0)
                             self._addresses[device_addr] = i2c_bus_no
-                        except IOError:
+                        except OSError:
                             pass
             except FileNotFoundError:
                 errors_buses += 1

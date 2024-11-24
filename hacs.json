@@ -1,5 +1,7 @@
 {
+  "filename": "rpi_waveshare_ups.zip",
   "homeassistant": "2023.5.0",
   "name": "Waveshare UPS for Raspberry Pi",
-  "render_readme": true
+  "render_readme": true,
+  "zip_release": true
 }
